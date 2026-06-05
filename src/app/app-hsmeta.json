@@ -1,0 +1,30 @@
+{
+  "uid": "contact_pdf_app",
+  "type": "app",
+  "config": {
+    "name": "Contact PDF",
+    "description": "Genera PDF per i contatti",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.contacts.read",
+        "crm.objects.appointments.read"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "sviluppo@yourbiz.it",
+      "documentationUrl": "",
+      "supportUrl": "",
+      "supportPhone": ""
+    }
+  }
+}

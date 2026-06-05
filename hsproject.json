@@ -1,0 +1,10 @@
+{
+  "name": "Contact PDF",
+  "srcDir": "src",
+  "platformVersion": "2026.03",
+  "description": "Genera PDF per i contatti",
+  "scopes": [
+    "crm.objects.contacts.read"
+  ],
+  "public": false
+}

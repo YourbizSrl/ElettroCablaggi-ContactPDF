@@ -1,0 +1,12 @@
+{
+  "uid": "contact_pdf_function",
+  "type": "app-function",
+  "config": {
+    "entrypoint": "/app/functions/generatePDF.js",
+    "endpoint": {
+      "path": "/api/generate-pdf",
+      "methods": ["GET"]
+    },
+    "secretKeys": []
+  }
+}

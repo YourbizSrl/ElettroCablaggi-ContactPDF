@@ -1,0 +1,10 @@
+{
+  "uid": "contact_pdf_card",
+  "type": "card",
+  "config": {
+    "name": "Genera PDF",
+    "location": "crm.record.tab",
+    "entrypoint": "/app/cards/ContactPDF.jsx",
+    "objectTypes": ["contacts", "appointment"]
+  }
+}
