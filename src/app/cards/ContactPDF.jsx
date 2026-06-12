@@ -99,36 +99,89 @@ const ContactPDFCard = ({ context, actions }) => {
       }
 
       const tableRows = rows
-        .map((r) => "<tr><td>" + r.label + "</td><td>" + r.value + "</td></tr>")
+        .map((r) =>
+          "<tr>" +
+          "<td class='cb-cell'><input type='checkbox' class='field-cb' checked onchange='updateBtn()'></td>" +
+          "<td class='lbl'>" + r.label + "</td>" +
+          "<td>" + r.value + "</td>" +
+          "</tr>"
+        )
         .join("");
+
+      const safeTitle = docTitle.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
       const html = [
         "<!DOCTYPE html><html lang='it'><head><meta charset='UTF-8'>",
+        "<script src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'><\/script>",
         "<style>",
-        "body{font-family:Arial,sans-serif;padding:28px;color:#333;margin:0}",
-        "h1{font-size:20px;color:#0066cc;border-bottom:2px solid #0066cc;padding-bottom:8px;margin-bottom:18px}",
+        "body{font-family:Arial,sans-serif;padding:20px;color:#333;margin:0}",
+        "h1{font-size:20px;color:#0066cc;border-bottom:2px solid #0066cc;padding-bottom:8px;margin-bottom:12px}",
+        ".intro{font-size:13px;color:#666;margin-bottom:12px}",
+        ".quick-actions{display:flex;gap:8px;margin-bottom:14px}",
+        ".btn-sm{padding:5px 12px;font-size:12px;border:1px solid #ccc;background:#f5f5f5;border-radius:3px;cursor:pointer}",
+        ".btn-sm:hover{background:#e8e8e8}",
         "table{width:100%;border-collapse:collapse}",
-        "td{padding:9px 12px;border-bottom:1px solid #eee;font-size:14px}",
-        "td:first-child{font-weight:bold;color:#555;width:140px}",
-        "#btn{margin-top:20px;padding:10px 20px;background:#0066cc;color:white;border:none;border-radius:4px;font-size:13px;cursor:pointer}",
-        "#btn:hover{background:#0052a3}",
-        "#ok{display:none;margin-top:12px;padding:10px;background:#e8f5e9;border:1px solid #66bb6a;border-radius:4px;font-size:13px;color:#2e7d32}",
-        "@media print{#btn,#ok{display:none !important}}",
+        "td{padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;vertical-align:middle}",
+        "td.cb-cell{width:28px;text-align:center;padding:8px 4px}",
+        "td.lbl{font-weight:bold;color:#555;width:130px}",
+        "#btn-download{margin-top:16px;padding:10px 20px;background:#0066cc;color:white;border:none;border-radius:4px;font-size:13px;cursor:pointer}",
+        "#btn-download:hover{background:#0052a3}",
+        "#btn-download:disabled{background:#aaa;cursor:default}",
+        "@media print{.quick-actions,#btn-download,.intro,.cb-cell{display:none !important}}",
         "</style>",
-        "<script>function sp(){document.execCommand('selectAll');document.getElementById('ok').style.display='block';document.getElementById('btn').style.display='none';try{window.print();}catch(e){}}<\/script>",
+        "<script>",
+        "var docTitle='" + safeTitle + "';",
+        "function updateBtn(){var any=Array.from(document.querySelectorAll('.field-cb')).some(function(c){return c.checked;});document.getElementById('btn-download').disabled=!any;}",
+        "function selAll(){document.querySelectorAll('.field-cb').forEach(function(c){c.checked=true;});updateBtn();}",
+        "function deselAll(){document.querySelectorAll('.field-cb').forEach(function(c){c.checked=false;});updateBtn();}",
+        "function downloadPDF(){",
+        "  var btn=document.getElementById('btn-download');",
+        "  if(typeof html2pdf==='undefined'){window.print();return;}",
+        "  btn.disabled=true;btn.textContent='Generazione...';",
+        "  var trs=Array.from(document.querySelectorAll('tr')).filter(function(tr){",
+        "    var cb=tr.querySelector('input.field-cb');",
+        "    return !cb||cb.checked;",
+        "  });",
+        "  var tbl='<table style=\"width:100%;border-collapse:collapse\">';",
+        "  trs.forEach(function(tr){",
+        "    var cells=tr.querySelectorAll('td:not(.cb-cell)');",
+        "    if(!cells.length)return;",
+        "    tbl+='<tr>';",
+        "    cells.forEach(function(td){",
+        "      var isLbl=td.classList.contains('lbl');",
+        "      var s=isLbl?'font-weight:bold;color:#555;width:130px;':'';",
+        "      tbl+='<td style=\"padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;'+s+'\">'+td.innerText+'</td>';",
+        "    });",
+        "    tbl+='</tr>';",
+        "  });",
+        "  tbl+='</table>';",
+        "  var el=document.createElement('div');",
+        "  el.style.padding='20px';",
+        "  el.innerHTML='<h1 style=\"font-size:20px;color:#0066cc;border-bottom:2px solid #0066cc;padding-bottom:8px;margin-bottom:18px\">'+docTitle+'</h1>'+tbl;",
+        "  html2pdf().from(el).set({",
+        "    margin:10,filename:docTitle+'.pdf',",
+        "    html2canvas:{scale:2},",
+        "    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}",
+        "  }).save().then(function(){btn.disabled=false;btn.textContent='Scarica PDF';});",
+        "}",
+        "<\/script>",
         "</head><body>",
         "<h1>" + docTitle + "</h1>",
+        "<p class='intro'>Seleziona i campi da includere nel PDF, poi clicca <b>Scarica PDF</b>.</p>",
+        "<div class='quick-actions'>",
+        "<button class='btn-sm' onclick='selAll()'>Seleziona tutto</button>",
+        "<button class='btn-sm' onclick='deselAll()'>Deseleziona tutto</button>",
+        "</div>",
         "<table>" + tableRows + "</table>",
-        "<button id='btn' onclick='sp()'>Stampa / Salva PDF</button>",
-        "<div id='ok'>Testo selezionato! Ora premi <b>Ctrl+P</b> &rarr; Salva come PDF</div>",
+        "<button id='btn-download' onclick='downloadPDF()'>Scarica PDF</button>",
         "</body></html>",
       ].join("");
 
       const encoded = btoa(unescape(encodeURIComponent(html)));
       actions.openIframeModal({
         uri: "data:text/html;base64," + encoded,
-        height: 450,
-        width: 650,
+        height: 520,
+        width: 680,
         title: "Scheda — " + docTitle,
       });
     } catch (e) {
